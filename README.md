@@ -365,8 +365,8 @@ The riml.js and Nano.php parsers have no problems without the quotes. Your milag
 The above example would generate the following Path/HTTP method combinations.
 
 | Route Name | URL Path | HTTP Method | Controller | Controller Method |
-| ---- |  -------- | ----------- | ----------------- |
-| `foobar` | `/:pid/foobar/` | `GET`, `POST` | foobar | `handle_default` |
+| ---------- | -------- | ----------- | ---------- | ----------------- |
+| `foobar` | `/:pid/foobar/` | `GET`, `POST` | `foobar` | `handle_default` |
 | `foobar_upload_logo` | `/:pid/foobar/upload_logo` | `GET`, `POST` | `foobar` | `handle_upload_logo` |
 | `foobar.import` | `/:pid/foobar/import` | `GET`, `POST` | `foobar.import` | `handle_default` |
 | `foobar.import_new` | `/:pid/foobar/import/new` | `GET`, `POST` | `foobar.import` | `handle_new` |
@@ -376,3 +376,4 @@ The above example would generate the following Path/HTTP method combinations.
 | `foobar_get_docs` | `/:pid/foobar.json` | `GET` | `foobar` | `handle_get_doc` |
 | `foobar_put_doc` | `/:pid/foobar.json` | `PUT` | `foobar` | `handle_put_doc` |
 | `foobar_patch_doc` | `/:pid/foobar.json` | `PATCH` | `foobar` | `handle_patch_doc` |
+
