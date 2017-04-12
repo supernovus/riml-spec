@@ -2,7 +2,7 @@
 
 ## Version
 
-1.0-DRAFT-8
+1.0-DRAFT-9
 
 ## Summary
 
@@ -10,10 +10,14 @@ The Routing Information Modeling Language is a compact YAML-based dialect for de
 
 It's lightweight, and integrates with the [Nano.php](https://github.com/supernovus/nano.php) v5 framework, as well as offering a [riml.js](https://github.com/supernovus/riml.js) implementation (which is also available on [NPM](https://www.npmjs.com/package/riml).)
 
-## Note
+## Development Note
 
 The RIML specification, and indeed the two reference implementations are still in development, and not everything is finalized.
 Things in here may change before the final `1.0` specification is published, so if you are using RIML already, be aware of that.
+
+## Version Note
+
+This version has overhauled the _traits_ and _templates_ features. It's removed _templates_ entirely, and given _traits_ the ability to use _placeholder_ values instead.
 
 ## Property Definitions
 
@@ -199,45 +203,27 @@ Note: While YAML supports multiple streams in a single document, the RIML specif
 
 The `!includePath` statement works exactly the same as `!include` except that it will not set the `noPath` property to `true`.
 
-## Templates and Traits
+## Traits and Trait Placeholder Values
 
-If you have a lot of routes that use a very similar structure with just a few differences, templates and traits are handy helpers. Two YAML processing statements make this possible.
+If you have a lot of routes that use a very similar structure with just a few differences, traits are handy helpers.
 
-Templates replace the Route that uses them with their own properties, after performing simple variable substitution.
+Traits can be included in any section of data, and will add their own properties into that section as long as the property does not exist.
+This means the order you add traits in is important, as later traits will not be able to override properties from earlier ones.
 
-Traits add any properties not already defined in the Route with predefined values (no substitution is supported.)
+Traits may contain placeholder values, which if used, will be replaced with real values when the trait is used in a section.
 
 ### !define
 
-The `!define` statement defines either a template or a trait.
+The `!define` statement defines either a trait, and any placeholder values it supports.
 
-You cannot define a template and a trait with the same property. The definition formats are not compatible.
-
-The properties used to define templates and traits will not be included in the final routing structure (they are metadata only, like Options.)
-
-#### Defining a Template
-
-If defining a template, it _requires_ two properties: `.template` is the name of the template, and `.vars` contains a list of placeholder variables and the paths they are found in the template.
-
-The paths may be deeply nested, and the last item in the path name may refer to placeholder strings in the template properties.
-
-```yaml
-my_template: !define
-  .template: my_template
-  .vars:
-    section: 
-      - path/:section
-      - method/:section
-  path: /appname/:section/document.json
-  method: handle_:section_document
-```
+The properties used to define traits will not be included in the final routing structure (they are metadata only, like Options.)
 
 #### Defining a Trait
 
-If defining a trait, it requires the `.trait` property, which is the name of the trait.
+When defining a trait, it requires the `.trait` property, which is the name of the trait.
 
 ```yaml
-my_trait:
+my_trait: !define
   .trait: my_trait
   http:
     - GET
@@ -246,67 +232,68 @@ my_trait:
   responseSchema: src/schemata/api/json/standard_response.json
 ```
 
-### !use
+#### Trait Placeholders
 
-The `!use` statement applies a previously defined template or trait.
+If your trait contains placeholder values, then you must definea property named `.placeholders` which contains a list of placeholder variables and the paths they are found in the trait.
 
-#### Using Templates
-
-If using a template, simply provide a `.template` property matching a previously defined template name.
+The paths may be deeply nested, and the last item in the path name may refer to placeholder strings in the template properties, or a property name itself.
 
 ```yaml
-a_section: !use
-  .template: my_template
-  section: hello_world
+my_var_trait: !define
+  .trait: my_var_trait
+  .placeholders:
+    section:
+      - path/:section
+      - method/:section
+      - .reference/name 
+  path: /appname/:section/document.json
+  method: handle_:section_document
+  .reference:
+    name: ~
 ```
 
-#### Using Traits
+### !use
 
-As traits can be combined with templates, you need to tell the processor which traits should be applied before a template, and which ones after.
-Traits applied before a template should contain only placeholder variable values. Traits applied after should contain properties you want to compose into the final structure.
+The `!use` statement applies previously defined traits.
 
-Any traits listed in the `.templateTraits` property will be applied before a `.template` expansion is done.
+You must have a `.traits` property that lists any traits you want to include.
+If placeholder values are used by any of the traits, you must also include a `.vars` property, which will contain the values to use for each placeholder.
 
-Any traits listed in the `.traits` property will be applied after a `.template` expansion is done.
-
-If you are just using traits without a template, stick with the `.traits` property.
+Traits themselves may contain a `.vars` property which will be handled differently than regular trait properties, in that the contents of it will be merged with the existing `.vars` property, again only adding ones not already defined. This can be used to create traits that define common values for placeholders in other traits.
 
 ```yaml
 another_section: !use
   .traits:
     - my_trait
-  path: /appname/info.json
-  method: handle_info
+    - my_var_trait
+  .vars:
+    section: hello_world
+  controller: my_controller
 ```
 
-### Template Example Compilation
+### Example Trait Compilation
 
-The template examples above combined would generate the following structure:
+The `!define` and `!use` examples above combined would generate the following structure when compiled:
 
 ```yaml
 a_section:
-  path: /appname/hello_world/document.json
-  method: handle_hello_world_document
-```
-
-### Traits Example Compilation
-
-The traits examples above combined would generate the following structure:
-
-```yaml
-another_section:
-  path: /appname/info.json
-  method: handle_info
+  controller: my_controller
   http:
     - GET
     - POST
   apiType: json
-  responseSchema: src/schemata/api/json/standard_response.json
+  responseSchema: src/schemata/api/json/standard_response.json  
+  path: /appname/hello_world/document.json
+  method: handle_hello_world_document
+  .reference:
+    name: hello_world
 ```
+
+Note that `.reference` is an option, and therefore wouldn't be included in the final routing structure.
 
 ## Example RIML Definition
 
-Here is an example showing off some of the features currently defined. Note we are currently using the `:placeholder` style that the Nano.php Router plugin uses rather than the @{placeholder}@ style, which may or may not be supported depending on the implementation.
+Here is an example showing off some of the features currently defined. Note we are currently using the `:placeholder` style that the Nano.php Router plugin uses rather than the `{placeholder}` style, which may or may not be supported depending on the implementation.
 
 ```yaml
 #%RIML 1.0
