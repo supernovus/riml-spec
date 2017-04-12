@@ -2,7 +2,7 @@
 
 ## Version
 
-1.0-DRAFT-9
+1.0-DRAFT-10
 
 ## Summary
 
@@ -10,14 +10,16 @@ The Routing Information Modeling Language is a compact YAML-based dialect for de
 
 It's lightweight, and integrates with the [Nano.php](https://github.com/supernovus/nano.php) v5 framework, as well as offering a [riml.js](https://github.com/supernovus/riml.js) implementation (which is also available on [NPM](https://www.npmjs.com/package/riml).)
 
-## Development Note
+## Development Notes
 
 The RIML specification, and indeed the two reference implementations are still in development, and not everything is finalized.
 Things in here may change before the final `1.0` specification is published, so if you are using RIML already, be aware of that.
 
-## Version Note
+## Version Notes
 
-This version has overhauled the _traits_ and _templates_ features. It's removed _templates_ entirely, and given _traits_ the ability to use _placeholder_ values instead.
+DRAFT-9 has overhauled the _traits_ and _templates_ features. It's removed _templates_ entirely, and given _traits_ the ability to use _placeholder_ values instead.
+
+DRAFT-10 has changed the format of the _placeholder_ specification, so that | is used as the delimiter character.
 
 ## Property Definitions
 
@@ -236,6 +238,8 @@ my_trait: !define
 
 If your trait contains placeholder values, then you must definea property named `.placeholders` which contains a list of placeholder variables and the paths they are found in the trait.
 
+The path delimiter is the pipe | character. This was chosen because / and . are both often used in the actual property names (something not common in programming languages, but essential in a routing information map.)
+
 The paths may be deeply nested, and the last item in the path name may refer to placeholder strings in the template properties, or a property name itself.
 
 ```yaml
@@ -243,13 +247,14 @@ my_var_trait: !define
   .trait: my_var_trait
   .placeholders:
     section:
-      - path/:section
-      - method/:section
-      - .reference/name 
+      - path|:section
+      - method|:section
+      - .reference|test|name 
   path: /appname/:section/document.json
   method: handle_:section_document
   .reference:
-    name: ~
+    test:
+      name: ~
 ```
 
 ### !use
@@ -286,7 +291,8 @@ a_section:
   path: /appname/hello_world/document.json
   method: handle_hello_world_document
   .reference:
-    name: hello_world
+    test:
+      name: hello_world
 ```
 
 Note that `.reference` is an option, and therefore wouldn't be included in the final routing structure.
