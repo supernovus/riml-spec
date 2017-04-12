@@ -248,10 +248,10 @@ my_var_trait: !define
   .placeholders:
     section:
       - path|:section
-      - method|:section
+      - method|<section>
       - .reference|test|name 
   path: /appname/:section/document.json
-  method: handle_:section_document
+  method: handle_<section>_document
   .reference:
     test:
       name: ~
