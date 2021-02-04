@@ -17,9 +17,8 @@ and generate automated tests.)
 
 | Language | Package | Description |
 | -------- | ------- | ----------- |
-| PHP | [riml.php](https://github.com/supernovus/riml.php) (Github) or [riml/riml-parser](https://packagist.org/packages/riml/riml-parser) (Composer) | A pure parser library which can be used to build further tools. |
-| PHP | [Lum\Router\FromRIML](https://github.com/supernovus/lum.core.php) (Github) or [lum/lum-core](https://packagist.org/packages/lum/lum-core) (Composer) | Generates routing configuration files for `\Lum\Plugins\Router` (a part of the `lum-core` library set) from a compiled RIML object. Requires the `riml/riml-parser` library above to do this. |
-| Node.js | [riml.js](https://github.com/supernovus/riml.js) (Github) or [riml](https://www.npmjs.com/package/riml) (NPM) | A pure-JS parser library which can be used to build further tools. |
+| PHP | [riml/riml-parser](https://packagist.org/packages/riml/riml-parser) | A pure parser library. See [lum/lum-core](https://packagist.org/packages/lum/lum-core) for an example of a package that uses RIML to build routing configuration files. |
+| Node.js | [riml](https://www.npmjs.com/package/riml) | A pure-JS parser library. |
 
 ## Development Notes
 
