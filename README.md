@@ -2,13 +2,24 @@
 
 ## Version
 
-1.0-DRAFT-10
+1.0-DRAFT-11 (2021-02-04)
 
 ## Summary
 
 The Routing Information Modeling Language is a compact YAML-based dialect for defining routing information and API documentation.
 
-It's lightweight, and integrates with the [Nano.php](https://github.com/supernovus/nano.php) v5 framework, as well as offering a [riml.js](https://github.com/supernovus/riml.js) implementation (which is also available on [NPM](https://www.npmjs.com/package/riml).)
+Kind of inspired by RAML and a few other similar descriptive schemas, but was
+designed with some specific hybrid use-cases in mind (specifically one schema
+that could be used to define routes in a web app, generate API documentation, 
+and generate automated tests.)
+
+## Implementations
+
+| Language | Package | Description |
+| -------- | ------- | ----------- |
+| PHP | [riml.php](https://github.com/supernovus/riml.php) (Github) or [riml/riml-parser](https://packagist.org/packages/riml/riml-parser) (Composer) | A pure parser library which can be used to build further tools. |
+| PHP | [Lum\Router\FromRIML](https://github.com/supernovus/lum.core.php) (Github) or [lum/lum-core](https://packagist.org/packages/lum/lum-core) (Composer) | Generates routing configuration files for `\Lum\Plugins\Router` (a part of the `lum-core` library set) from a compiled RIML object. Requires the `riml/riml-parser` library above to do this. |
+| Node.js | [riml.js](https://github.com/supernovus/riml.js) (Github) or [riml](https://www.npmjs.com/package/riml) (NPM) | A pure-JS parser library which can be used to build further tools. |
 
 ## Development Notes
 
@@ -17,9 +28,9 @@ Things in here may change before the final `1.0` specification is published, so 
 
 ## Version Notes
 
-DRAFT-9 has overhauled the _traits_ and _templates_ features. It's removed _templates_ entirely, and given _traits_ the ability to use _placeholder_ values instead.
+DRAFT-11 changes how the `!include` and `!includePath` statements determine if the filename is relative to the configuration directory or not. 
 
-DRAFT-10 has changed the format of the _placeholder_ specification, so that | is used as the delimiter character.
+Also a few minor cleanups and clarifications.
 
 ## Property Definitions
 
@@ -35,9 +46,9 @@ Global keywords can appear anywhere in a RIML document, and the closest defined 
 | `controller` | The backend controller that handles this route. | `string` |
 | `method` | The controller method that handles this route. | `string` |
 | `apiType` | The API type used. Set to `false` for none, or `true` for auto. | `false`, `"json"`, `"xml"`, `true` |
-| `authType` | The Auth system used. Set to `false` for none, or `true` for any. | `false`, `"userOnly"`, `"userAccess"`, `"ipAccess"`, `"token"`, `true` |
+| `authType` | The Auth system used. Set to `false` for none, or `true` for any. | `false`,`true`,`string`,`array` |
 
-The `authType` is a string or array of strings referring to which plugin(s) which may be supported by the RIML implementation for testing purposes. The types shown in the valid values are those used by Nano.php, but others may be used.
+The `authType` in addition to the pre-defined boolean values, may also be a string or array of strings referring to which plugin(s) which may be supported by the specific implementation in use. We don't define any predetermined types in the specification.
 
 ### Route Properties
 
@@ -62,7 +73,7 @@ The `path` is usually defined as a property name itself, rather than explicitly 
 | `examples` | A list of examples for documentation. | See [Examples](#examples) |
 | `tests` | A set of parameters for automated tests. | See [Tests](#tests) |
 | `defaultRoute` | This route is the default if no others match. Only one Route should ever be default. | `false`, `true` |
-| `redirect` | A URL (or _Nano Route_ name) this Route redirects to. | `string` |
+| `redirect` | A URL (or _route name_) this Route redirects to. | `string` |
 | `redirectRoute` | The `redirect` is the name of a _Route_, not a URL. | `false`, `true` |
 
 Note: while most keywords apply traits to the current Route and any child routes, `virtual` and `noPath` only applies to the current Route itself. Those particular keywords are not passed along in the dependency tree.
@@ -191,7 +202,10 @@ title: An example file
 common_routes: !include common_routes.yaml
 ```
 
-If no slashes appear in the filename, the file will be considered to be in the same directory as the calling file.
+If the filename does not start with a slash, the filename will be considered to be relative to the directory of the calling file. It is valid to use filenames
+like `subdirectory/something.yaml` or `../includes/common_file.yaml` just
+remembering that subsequent include statements in those files will be relative
+as well.
 
 If the top-level definition in the included file does not include a `virtual` property, it will be set to `true` when included.
 If the top-level definition in the included file does not include a `noPath` property, it will be set to `true` when included.
@@ -236,7 +250,7 @@ my_trait: !define
 
 #### Trait Placeholders
 
-If your trait contains placeholder values, then you must definea property named `.placeholders` which contains a list of placeholder variables and the paths they are found in the trait.
+If your trait contains placeholder values, then you must define a property named `.placeholders` which contains a list of placeholder variables and the paths they are found in the trait.
 
 The path delimiter is the pipe | character. This was chosen because / and . are both often used in the actual property names (something not common in programming languages, but essential in a routing information map.)
 
