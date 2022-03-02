@@ -26,17 +26,6 @@ and generate automated tests.)
 | PHP | [riml/riml-parser](https://packagist.org/packages/riml/riml-parser) | A pure parser library. See [lum/lum-core](https://packagist.org/packages/lum/lum-core) for an example of a package that uses RIML to build routing configuration files. |
 | Node.js | [riml](https://www.npmjs.com/package/riml) | A pure-JS parser library. |
 
-## Development Notes
-
-The RIML specification, and indeed the two reference implementations are still in development, and not everything is finalized.
-Things in here may change before the final `1.0` specification is published, so if you are using RIML already, be aware of that.
-
-## Version Notes
-
-DRAFT-11 changes how the `!include` and `!includePath` statements determine if the filename is relative to the configuration directory or not. 
-
-Also a few minor cleanups and clarifications.
-
 ## Property Definitions
 
 ### Global Properties
@@ -176,12 +165,80 @@ If it is specified, it represents the expected response from the test service ca
 The property name should be either the `path` (in which case you don't have to set a path inside the definition), or a placeholder value.
 If the method is a simple word with no slashes, the path will be assumed to have no URL parameters.
 
-If the property has the `!controller` trait, or a property called `.controller` set to `true`, the name of the property is the name of the controller.
-If the property has the `!method` trait, or a property called `.method` set to `true`, the method name will be set to `handle_property_name` where `property_name` is the name of the property. These are convenient short cuts.
-
-The `!virtual` trait can be used instead of setting a `virtual: true` property.
-
 Nested Routes prepend their parent Route's path to their own.
+
+### `.controller` and `!controller`
+
+If the *path property* has a child propery called `.controller` set to `true`,
+the name of the path property is also the name of the controller.
+
+```yaml
+---
+/my/app: !virtual
+  controller: default        # Everything in `/my/app`, unless overridden, will
+  GET:                       # use the `default` controller.
+    method: handle_get
+  POST:
+    method: handle_post
+  sub_section:               # Everything in `/my/app/sub_section` will use
+    .controller: true        # the `sub_section` controller.
+    method: handle_foo_bar 
+...
+```
+
+If the property has the `!controller` tag, it will automatically have the
+`.controller` property set to `true`. So the following example does exactly
+the same thing as the one above.
+
+```yaml
+/my/app: !virtual
+  controller: default
+  # other defs here
+  sub_section: !controller
+    method: handle_foo_bar
+    
+...
+```
+
+### `.method` and `!method`
+
+If the *path property* has a child property called `.method` set to `true`, 
+the name of the the path property will be used to determine the name of the
+method. By default it will have `handle_` prepended to the name, but this
+should be configurable (see the *Predefined Options* section below.)
+
+The `!method` tag when used without a string parameter will be like setting
+the `.method` property to `true`.
+
+```yaml
+---
+/my/app: !virtual
+  controller: default        
+  GET: !method          # Use Default::handle_get()
+  POST: !method         # Use Default::handle_post()
+  DELETE: !method       # Use Default::handle_delete()
+  sub_section: !method  # Use Foo\Bar::handle_sub_section()
+    controller: foo.bar 
+...
+```
+
+If the `!method` tag is used with a string parameter (in this case you can have
+no further child properties, only defaults) then the parameter will be used as 
+the method name:
+
+```yaml
+---
+/my/app: !virtual
+  controller: default
+  GET: !method handle_list_docs
+  POST: !method handle_create_doc
+  DELETE: !method handle_delete_doc
+...
+```
+
+### `!virtual`
+
+The `!virtual` tag can be used instead of setting a `virtual: true` property.
 
 ### HTTP Method Child Routes
 
@@ -193,16 +250,30 @@ If a child route has the name `"json"` or `"xml"` with no other characters, it w
 
 ## Options
 
-Any property starting with a dot will be considered an Option. Options can be used for implementation-specific purposes.
+Any property starting with a dot will be considered an *option*. 
+There's not too many pre-defined options, but options can be used for all kinds
+of implementation-specific purposes.
 
-The only global (document level) option that should be supported by all implementations is `.includePoly` which if `true` means the file can be included more than once.
+### Predefined Options
+
+All of the following options are *document-level*, which means they can only
+be set at the very top level of a given document.
+
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `.includePoly` | `false` | If `true`, the file can be *included* more than once. |
+| `.methodPrefix` | `"handle_"` | A prefix for using with `.method` and `!method`. |
+| `.methodSuffix` | `""` | A suffix for using with `.method` and `!method`. |
+| `.methodCamelCase` | `false` | If `true` then when generating a method name from a path property, the method will replace `_` characters with *camelCase* naming. So for example a path of `some_path` would use `handleSomePath`. |
+| `.controllerPrefix` | `""` | A prefix for using with `.controller` and `!controller`. |
+| `.controllerSuffix` | `""` | A suffix for using with `.controller` and `!controller`. |
+| `.controllerCamelCase` | `false` | The same as `.methodCamelCase`, but for `.controller` and `!controller`. |
 
 ## Include statements
 
 A property in a file can include another file by using a YAML processing statement:
 
 ```yaml
-#%RIML 1.0
 title: An example file
 common_routes: !include common_routes.yaml
 ```
@@ -321,7 +392,6 @@ Note that `.reference` is an option, and therefore wouldn't be included in the f
 Here is an example showing off some of the features currently defined. Note we are currently using the `:placeholder` style that the Nano.php Router plugin uses rather than the `{placeholder}` style, which may or may not be supported depending on the implementation.
 
 ```yaml
-#%RIML 1.0
 title: Foobar
 description: Routing for the Foobar controller
 controller: foobar
