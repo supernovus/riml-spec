@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/supernovus/riml-spec/compare/v1.12.0...HEAD
 [1.12.0]: https://github.com/supernovus/riml-spec/compare/v1.11.0...v1.12.0
-[1.11.0]: https://github.com/supernovus/riml-spec/compare/v1.10.0...v1.11.2
+[1.11.0]: https://github.com/supernovus/riml-spec/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/supernovus/riml-spec/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/supernovus/riml-spec/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/supernovus/riml-spec/releases/tag/v1.8.0
