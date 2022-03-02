@@ -2,7 +2,13 @@
 
 ## Version
 
-1.0-DRAFT-11 (2021-02-04)
+1.12
+
+### Updated
+
+2022-03-02
+
+### [Changelog]
 
 ## Summary
 
@@ -382,4 +388,7 @@ The above example would generate the following Path/HTTP method combinations.
 | `foobar_get_docs` | `/:pid/foobar.json` | `GET` | `foobar` | `handle_get_doc` |
 | `foobar_put_doc` | `/:pid/foobar.json` | `PUT` | `foobar` | `handle_put_doc` |
 | `foobar_patch_doc` | `/:pid/foobar.json` | `PATCH` | `foobar` | `handle_patch_doc` |
+
+
+[Changelog]: https://github.com/supernovus/riml-spec/blob/main/CHANGELOG.md
 
